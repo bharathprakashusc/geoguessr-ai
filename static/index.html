@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoGuessr AI Agent</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f1117;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      padding: 0 24px;
+      border-bottom: 1px solid #1e2433;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 52px;
+      flex-shrink: 0;
+    }
+
+    .logo { font-size: 19px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+    .logo span { color: #4ade80; }
+
+    .badge {
+      font-size: 10px; background: #1a2035;
+      border: 1px solid #2d3748; padding: 3px 8px;
+      border-radius: 20px; color: #94a3b8;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+
+    .model-status { display: flex; align-items: center; gap: 7px; font-size: 12px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #374151; flex-shrink: 0; }
+    .status-dot.ok    { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+    .status-dot.error { background: #f87171; box-shadow: 0 0 6px #f87171; }
+    .status-dot.checking { background: #fbbf24; animation: pulse-dot 1s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .status-label { color: #64748b; }
+
+    /* ── 3-COLUMN LAYOUT ── */
+    .workspace {
+      display: grid;
+      grid-template-columns: 320px 1fr 320px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ── LEFT COLUMN — controls ── */
+    .left-col {
+      border-right: 1px solid #1e2433;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* custom scrollbar */
+    .left-col::-webkit-scrollbar { width: 4px; }
+    .left-col::-webkit-scrollbar-track { background: transparent; }
+    .left-col::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 2px; }
+
+    .panel-block {
+      padding: 16px 18px;
+      border-bottom: 1px solid #1e2433;
+    }
+
+    .section-label {
+      font-size: 10px; font-weight: 700;
+      color: #475569; text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 10px;
+    }
+
+    /* drop zone */
+    .drop-zone {
+      border: 2px dashed #2d3748; border-radius: 10px;
+      padding: 18px 14px; text-align: center;
+      cursor: pointer; transition: all 0.2s;
+      background: #0d1220; position: relative;
+    }
+    .drop-zone:hover, .drop-zone.drag-over { border-color: #4ade80; background: #0a1a10; }
+    .drop-zone.paste-ready { border-color: #60a5fa; background: #0a1020; animation: flash-blue 0.6s ease; }
+    @keyframes flash-blue { 0%,100%{border-color:#60a5fa} 50%{border-color:#93c5fd} }
+
+    .drop-zone input[type="file"] { position: absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .drop-zone .icon { font-size: 22px; margin-bottom: 5px; }
+    .drop-zone p { font-size: 11.5px; color: #64748b; line-height: 1.5; }
+    .drop-zone p strong { color: #94a3b8; }
+    .paste-hint { margin-top: 6px; font-size: 10px; color: #374151; background: #1a2035; border-radius: 5px; padding: 3px 8px; display: inline-block; }
+
+    #preview-container { margin-top: 10px; display: none; }
+    #preview-img { width: 100%; border-radius: 7px; border: 1px solid #1e2433; max-height: 150px; object-fit: cover; }
+
+    /* settings */
+    .settings-rows { display: flex; flex-direction: column; gap: 10px; }
+
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .setting-label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.7px; flex-shrink: 0; }
+
+    .model-select {
+      flex: 1; background: #0d1220; border: 1px solid #2d3748;
+      border-radius: 6px; color: #e2e8f0; font-size: 12px;
+      padding: 6px 8px; cursor: pointer; outline: none; transition: border-color 0.2s;
+    }
+    .model-select:focus, .model-select:hover { border-color: #4ade80; }
+
+    .toggle-group { display: flex; border: 1px solid #2d3748; border-radius: 6px; overflow: hidden; }
+    .toggle-btn {
+      flex: 1; padding: 5px 12px; font-size: 11px; font-weight: 600;
+      background: transparent; border: none; color: #475569;
+      cursor: pointer; transition: all 0.15s;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .toggle-btn.active { background: #4ade80; color: #0a0f1a; }
+    .toggle-btn:not(.active):hover { background: #1e2433; color: #94a3b8; }
+
+    /* estimate */
+    .estimate-box {
+      background: #0d1220; border: 1px solid #1e2433;
+      border-radius: 8px; padding: 10px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .est-left { display: flex; flex-direction: column; gap: 1px; }
+    .est-title { font-size: 9px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.8px; }
+    .est-value { font-size: 17px; font-weight: 700; color: #fff; }
+    .est-note { font-size: 9px; color: #374151; }
+    .elapsed-block { text-align: right; }
+    .elapsed-lbl { font-size: 9px; color: #374151; text-transform: uppercase; letter-spacing: 0.8px; }
+    .elapsed-val { font-size: 15px; font-weight: 700; color: #4ade80; font-family: monospace; }
+
+    .analyze-btn {
+      width: 100%; padding: 11px;
+      background: #4ade80; color: #0a0f1a;
+      border: none; border-radius: 8px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .analyze-btn:hover:not(:disabled) { background: #22c55e; }
+    .analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── MIDDLE COLUMN — map + results ── */
+    .mid-col {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    #map { flex: 1; min-height: 0; }
+
+    .results-bar {
+      border-top: 1px solid #1e2433;
+      background: #0a0d15;
+      padding: 10px 18px;
+      display: none;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    .result-block { display: flex; flex-direction: column; gap: 1px; }
+    .rb-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #475569; }
+    .rb-value { font-size: 14px; font-weight: 700; color: #fff; }
+    .rb-sub { font-size: 10px; color: #64748b; }
+
+    .confidence-pill {
+      padding: 3px 9px; border-radius: 20px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .confidence-pill.high   { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+    .confidence-pill.medium { background: #1c1506; color: #fbbf24; border: 1px solid #92400e; }
+    .confidence-pill.low    { background: #1a0a0a; color: #f87171; border: 1px solid #991b1b; }
+
+    .coords-mono { font-family: 'Courier New', monospace; font-size: 12px; color: #4ade80; }
+
+    .alt-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+    .alt-pill {
+      padding: 3px 9px; background: #1a2035;
+      border: 1px solid #2d3748; border-radius: 20px;
+      font-size: 10px; color: #94a3b8; cursor: pointer; transition: all 0.15s;
+    }
+    .alt-pill:hover { border-color: #4ade80; color: #4ade80; }
+
+    /* ── RIGHT COLUMN — thinking ── */
+    .right-col {
+      border-left: 1px solid #1e2433;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .thinking-header {
+      padding: 10px 16px;
+      border-bottom: 1px solid #1e2433;
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .thinking-header .section-label { margin: 0; }
+
+    .thinking-indicator {
+      display: none; align-items: center; gap: 5px;
+      margin-left: auto; font-size: 10px; color: #4ade80;
+    }
+    .thinking-indicator .dot {
+      width: 5px; height: 5px; background: #4ade80;
+      border-radius: 50%; animation: blink 1s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    .thinking-body {
+      flex: 1; overflow-y: auto;
+      padding: 12px 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px; line-height: 1.7;
+      color: #64748b; white-space: pre-wrap; word-break: break-word;
+    }
+    .thinking-body::-webkit-scrollbar { width: 4px; }
+    .thinking-body::-webkit-scrollbar-track { background: transparent; }
+    .thinking-body::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 2px; }
+
+    .thinking-body:empty::before {
+      content: 'AI reasoning will stream here in real-time once analysis starts...';
+      color: #1e2d3d; font-family: 'Segoe UI', system-ui, sans-serif; font-size: 12px;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 22px; right: 22px;
+      background: #0f1117; border: 1px solid #4ade80;
+      border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 9999; max-width: 300px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast-icon { font-size: 20px; flex-shrink: 0; }
+    .toast-title { font-size: 13px; font-weight: 700; color: #fff; }
+    .toast-sub { font-size: 10px; color: #64748b; margin-top: 2px; }
+
+    .error-toast {
+      position: fixed; bottom: 22px; right: 22px;
+      background: #1a0a0a; border: 1px solid #7f1d1d;
+      border-radius: 10px; padding: 10px 14px;
+      color: #fca5a5; font-size: 12px;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.3s; z-index: 9999;
+    }
+    .error-toast.show { transform: translateY(0); opacity: 1; }
+
+    .leaflet-popup-content-wrapper { background:#0f1117; border:1px solid #1e2433; color:#e2e8f0; }
+    .leaflet-popup-tip { background:#0f1117; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">Geo<span>AI</span></div>
+    <div class="badge">Street View Analyzer</div>
+    <div class="header-right">
+      <div class="model-status">
+        <div class="status-dot checking" id="status-dot"></div>
+        <span class="status-label" id="status-label">Connecting...</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="workspace">
+
+    <!-- LEFT: controls -->
+    <div class="left-col">
+
+      <div class="panel-block">
+        <div class="section-label">Image Input</div>
+        <div class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" accept="image/*" />
+          <div class="icon">🌍</div>
+          <p><strong>Drop</strong> or <strong>click to browse</strong></p>
+          <div class="paste-hint">⌨️ Ctrl+V to paste screenshot</div>
+        </div>
+        <div id="preview-container">
+          <img id="preview-img" src="" alt="Preview" />
+        </div>
+      </div>
+
+      <div class="panel-block">
+        <div class="section-label">Settings</div>
+        <div class="settings-rows">
+
+          <div class="setting-row">
+            <span class="setting-label">Model</span>
+            <select class="model-select" id="model-select">
+              <option value="">Loading...</option>
+            </select>
+          </div>
+
+          <div class="setting-row">
+            <span class="setting-label">Prompt</span>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="prompt-short" onclick="setPrompt('short')">Short</button>
+              <button class="toggle-btn"        id="prompt-long"  onclick="setPrompt('long')">Long</button>
+            </div>
+          </div>
+
+          <div class="estimate-box">
+            <div class="est-left">
+              <div class="est-title">Expected Time</div>
+              <div class="est-value" id="estimate-value">—</div>
+              <div class="est-note"  id="estimate-note">Select a model</div>
+            </div>
+            <div class="elapsed-block">
+              <div class="elapsed-lbl">Elapsed</div>
+              <div class="elapsed-val" id="elapsed-value">—</div>
+            </div>
+          </div>
+
+          <button class="analyze-btn" id="analyze-btn">Analyze Location</button>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MIDDLE: map + results -->
+    <div class="mid-col">
+      <div id="map"></div>
+      <div class="results-bar" id="results-bar">
+        <div class="result-block">
+          <div class="rb-label">Country</div>
+          <div class="rb-value" id="rb-country">—</div>
+          <div class="rb-sub"   id="rb-region">—</div>
+        </div>
+        <div class="result-block">
+          <div class="rb-label">Coordinates</div>
+          <div class="rb-value coords-mono" id="rb-coords">—</div>
+        </div>
+        <div id="rb-confidence" class="confidence-pill medium" style="display:none"></div>
+        <div class="result-block" id="rb-alts-block" style="display:none">
+          <div class="rb-label">Alternatives</div>
+          <div class="alt-pills" id="rb-alts"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: thinking stream -->
+    <div class="right-col">
+      <div class="thinking-header">
+        <div class="section-label">AI Thinking</div>
+        <div class="thinking-indicator" id="thinking-indicator">
+          <div class="dot"></div>
+          <span>Live</span>
+        </div>
+      </div>
+      <div class="thinking-body" id="thinking-body"></div>
+    </div>
+
+  </div>
+
+  <!-- Notifications -->
+  <div class="toast" id="toast">
+    <div class="toast-icon">📍</div>
+    <div>
+      <div class="toast-title" id="toast-title">Location found!</div>
+      <div class="toast-sub"   id="toast-sub">—</div>
+    </div>
+  </div>
+  <div class="error-toast" id="error-toast"></div>
+
+  <script>
+    // ── TIME ESTIMATES ──
+    const TIME_ESTIMATES = {
+      'moondream':           { short: '~1 min',   long: '~2 min',   note: 'Fastest, lower accuracy' },
+      'llava':               { short: '~3 min',   long: '~6 min',   note: 'Good balance' },
+      'llava:7b':            { short: '~3 min',   long: '~6 min',   note: 'Good balance' },
+      'llava:13b':           { short: '~6 min',   long: '~10 min',  note: 'Higher accuracy, slower' },
+      'llama3.2-vision':     { short: '~2 min',   long: '~5 min',   note: 'Best accuracy' },
+      'llama3.2-vision:11b': { short: '~2 min',   long: '~5 min',   note: 'Best accuracy' },
+      'minicpm-v':           { short: '~2 min',   long: '~4 min',   note: 'Good middle ground' },
+      'bakllava':            { short: '~3 min',   long: '~5 min',   note: 'Good accuracy' },
+    };
+
+    function getEstimate(modelName, mode) {
+      const key = Object.keys(TIME_ESTIMATES).find(k => modelName && modelName.startsWith(k));
+      if (!key) return { time: '~3–8 min', note: 'GPU is ~8x faster than CPU' };
+      const e = TIME_ESTIMATES[key];
+      return { time: e[mode] || e.short, note: e.note + ' · GPU ~8x faster' };
+    }
+
+    function updateEstimate() {
+      const model = document.getElementById('model-select').value;
+      const { time, note } = getEstimate(model, currentPromptMode);
+      document.getElementById('estimate-value').textContent = time;
+      document.getElementById('estimate-note').textContent  = note;
+    }
+
+    // ── MAP ──
+    const map = L.map('map', { center: [20, 0], zoom: 2 });
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+
+    let primaryMarker = null;
+    const altMarkers = [];
+
+    // ── LOAD MODELS ──
+    async function loadModels() {
+      const dot    = document.getElementById('status-dot');
+      const label  = document.getElementById('status-label');
+      const select = document.getElementById('model-select');
+      try {
+        const res  = await fetch('/models');
+        const data = await res.json();
+        select.innerHTML = '';
+        if (!data.models.length) {
+          select.innerHTML = '<option value="">No models installed</option>';
+          dot.className = 'status-dot error';
+          label.textContent = 'Run: ollama pull moondream';
+          return;
+        }
+        data.models.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m; opt.textContent = m;
+          if (m === data.default || m.startsWith(data.default)) opt.selected = true;
+          select.appendChild(opt);
+        });
+        dot.className = 'status-dot ok';
+        label.textContent = 'Ollama connected';
+        updateEstimate();
+      } catch {
+        dot.className = 'status-dot error';
+        label.textContent = 'Ollama not running';
+        select.innerHTML = '<option value="">Ollama offline</option>';
+      }
+    }
+    loadModels();
+    document.getElementById('model-select').addEventListener('change', updateEstimate);
+
+    // ── PROMPT TOGGLE ──
+    let currentPromptMode = 'short';
+    function setPrompt(mode) {
+      currentPromptMode = mode;
+      document.getElementById('prompt-short').classList.toggle('active', mode === 'short');
+      document.getElementById('prompt-long').classList.toggle('active', mode === 'long');
+      updateEstimate();
+    }
+
+    // ── DROP / BROWSE / PASTE ──
+    const fileInput  = document.getElementById('file-input');
+    const dropZone   = document.getElementById('drop-zone');
+    const previewCon = document.getElementById('preview-container');
+    const previewImg = document.getElementById('preview-img');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    let currentFile  = null;
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) loadPreview(f);
+    });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) loadPreview(e.target.files[0]); });
+
+    document.addEventListener('paste', e => {
+      for (const item of (e.clipboardData?.items || [])) {
+        if (item.type.startsWith('image/')) {
+          const f = item.getAsFile();
+          if (f) { loadPreview(f); dropZone.classList.add('paste-ready'); setTimeout(() => dropZone.classList.remove('paste-ready'), 700); }
+          break;
+        }
+      }
+    });
+
+    function loadPreview(file) {
+      currentFile = file;
+      const reader = new FileReader();
+      reader.onload = e => { previewImg.src = e.target.result; previewCon.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    }
+
+    analyzeBtn.addEventListener('click', analyze);
+
+    // ── ELAPSED TIMER ──
+    let elapsedInterval = null;
+    function startTimer() {
+      const start = Date.now();
+      document.getElementById('elapsed-value').textContent = '0s';
+      elapsedInterval = setInterval(() => {
+        const s = Math.floor((Date.now() - start) / 1000);
+        const m = Math.floor(s / 60);
+        document.getElementById('elapsed-value').textContent = m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+      }, 1000);
+    }
+    function stopTimer() { clearInterval(elapsedInterval); }
+
+    // ── ANALYZE ──
+    async function analyze() {
+      if (!currentFile) return;
+      if (Notification.permission === 'default') Notification.requestPermission();
+
+      const selectedModel = document.getElementById('model-select').value;
+      if (!selectedModel) { showError('No model selected. Make sure Ollama is running.'); return; }
+
+      analyzeBtn.disabled = true;
+      document.getElementById('results-bar').style.display = 'none';
+      document.getElementById('thinking-body').textContent = '';
+      document.getElementById('thinking-indicator').style.display = 'flex';
+      startTimer();
+
+      const formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('model', selectedModel);
+      formData.append('prompt_mode', currentPromptMode);
+
+      try {
+        const response = await fetch('/analyze', { method: 'POST', body: formData });
+        if (!response.ok) { const e = await response.json(); throw new Error(e.detail || 'Server error'); }
+
+        const reader  = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop();
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            try { handleEvent(JSON.parse(line.slice(6))); } catch { }
+          }
+        }
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        analyzeBtn.disabled = false;
+        document.getElementById('thinking-indicator').style.display = 'none';
+        stopTimer();
+      }
+    }
+
+    function handleEvent(e) {
+      if (e.type === 'thinking') appendThinking(e.text);
+      else if (e.type === 'result') displayResult(e.data);
+      else if (e.type === 'error')  showError(e.message);
+    }
+
+    function appendThinking(text) {
+      const body = document.getElementById('thinking-body');
+      body.textContent += text;
+      body.scrollTop = body.scrollHeight;
+    }
+
+    // ── DISPLAY RESULT ──
+    function displayResult(data) {
+      document.getElementById('results-bar').style.display = 'flex';
+      document.getElementById('rb-country').textContent = data.country || '—';
+      document.getElementById('rb-region').textContent  = data.region  || data.location_name || '';
+
+      const lat = parseFloat(data.latitude);
+      const lng = parseFloat(data.longitude);
+
+      if (!isNaN(lat) && !isNaN(lng) && !(lat === 0 && lng === 0)) {
+        document.getElementById('rb-coords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        placeMarker(lat, lng, data.country, data.region, true);
+      }
+
+      const conf = data.confidence || 'low';
+      const pill = document.getElementById('rb-confidence');
+      pill.style.display = 'block';
+      pill.textContent   = conf.charAt(0).toUpperCase() + conf.slice(1) + ' confidence';
+      pill.className     = `confidence-pill ${conf}`;
+
+      // alternatives
+      altMarkers.forEach(m => map.removeLayer(m)); altMarkers.length = 0;
+      const altsBlock = document.getElementById('rb-alts-block');
+      const altsList  = document.getElementById('rb-alts');
+      altsList.innerHTML = '';
+      if (data.alternatives?.length) {
+        altsBlock.style.display = 'block';
+        data.alternatives.forEach(alt => {
+          const p = document.createElement('div');
+          p.className = 'alt-pill';
+          p.textContent = alt.country + (alt.region ? ` · ${alt.region}` : '');
+          p.title = alt.reason || '';
+          const aLat = parseFloat(alt.latitude);
+          const aLng = parseFloat(alt.longitude);
+          if (!isNaN(aLat) && !isNaN(aLng)) {
+            const m = placeMarker(aLat, aLng, alt.country, alt.region, false);
+            altMarkers.push(m);
+            p.addEventListener('click', () => map.flyTo([aLat, aLng], 5, { duration: 1 }));
+          }
+          altsList.appendChild(p);
+        });
+      } else {
+        altsBlock.style.display = 'none';
+      }
+
+      const locName = data.location_name || `${data.country}${data.region ? ', ' + data.region : ''}`;
+      showToast(locName, `${lat.toFixed(3)}, ${lng.toFixed(3)} · ${conf} confidence`);
+      sendBrowserNotification(locName, data.country);
+    }
+
+    function placeMarker(lat, lng, country, region, isPrimary) {
+      if (isPrimary && primaryMarker) map.removeLayer(primaryMarker);
+      const color = isPrimary ? '#4ade80' : '#fbbf24';
+      const size  = isPrimary ? 16 : 10;
+      const icon  = L.divIcon({
+        className: '',
+        html: `<div style="width:${size}px;height:${size}px;background:${color};border:2px solid ${isPrimary?'#fff':'#0f1117'};border-radius:50%;box-shadow:0 0 ${isPrimary?12:6}px ${color};"></div>`,
+        iconSize: [size, size], iconAnchor: [size/2, size/2],
+      });
+      const marker = L.marker([lat, lng], { icon }).addTo(map)
+        .bindPopup(`<strong>${country}</strong>${region?'<br/>'+region:''}<br/><code>${lat.toFixed(4)}, ${lng.toFixed(4)}</code>`);
+      if (isPrimary) { primaryMarker = marker; map.flyTo([lat, lng], 6, { duration: 1.5 }); }
+      return marker;
+    }
+
+    // ── TOAST ──
+    let toastTimeout = null;
+    function showToast(title, sub) {
+      const t = document.getElementById('toast');
+      document.getElementById('toast-title').textContent = title;
+      document.getElementById('toast-sub').textContent   = sub;
+      t.classList.add('show');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => t.classList.remove('show'), 5000);
+    }
+
+    function sendBrowserNotification(location, country) {
+      if (Notification.permission === 'granted')
+        new Notification('GeoAI — Location Found!', { body: `${location} (${country})` });
+    }
+
+    let errorTimeout = null;
+    function showError(msg) {
+      const el = document.getElementById('error-toast');
+      el.textContent = `Error: ${msg}`;
+      el.classList.add('show');
+      clearTimeout(errorTimeout);
+      errorTimeout = setTimeout(() => el.classList.remove('show'), 6000);
+    }
+  </script>
+</body>
+</html>
