@@ -2,7 +2,7 @@
 
 An AI-powered GeoGuessr assistant that analyzes street view screenshots and predicts the location on a map. Drop an image, watch the AI reason through visual clues in real time, and get a pinned latitude/longitude result.
 
-![GeoAI Screenshot](https://via.placeholder.com/900x500/0f1117/4ade80?text=GeoAI+Street+View+Analyzer)
+![GeoAI Screenshot](screenshot.png)
 
 ---
 
