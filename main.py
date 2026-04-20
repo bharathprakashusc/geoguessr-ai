@@ -1,12 +1,23 @@
 import os
 import json
 import re
+import base64
 from pathlib import Path
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import ollama
+import anthropic
+
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
+anthropic_client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY) if ANTHROPIC_API_KEY else None
+
+CLAUDE_MODELS = [
+    "claude-sonnet-4-5",
+    "claude-opus-4-5",
+    "claude-haiku-4-5",
+]
 
 app = FastAPI()
 
@@ -22,6 +33,10 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 METAS_PATH = Path(__file__).parent / "data" / "metas.json"
 with open(METAS_PATH) as f:
     METAS = json.load(f)
+
+SAMPLES_PATH = Path(__file__).parent / "data" / "samples.json"
+with open(SAMPLES_PATH, encoding="utf-8") as f:
+    SAMPLES = json.load(f)
 
 DEFAULT_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2-vision")
 
@@ -142,12 +157,27 @@ async def root():
 
 @app.get("/models")
 async def list_models():
+    models = []
+
+    # Ollama models
     try:
         result = ollama.list()
-        models = [m.model for m in result.models]
-        return {"models": models, "default": DEFAULT_MODEL}
-    except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Ollama not reachable: {e}")
+        models += [m.model for m in result.models]
+    except Exception:
+        pass  # Ollama offline — still return Claude models if key exists
+
+    # Claude models (only if API key is configured)
+    if anthropic_client:
+        models += CLAUDE_MODELS
+
+    if not models:
+        raise HTTPException(status_code=503, detail="No models available. Start Ollama or set ANTHROPIC_API_KEY.")
+
+    return {
+        "models": models,
+        "default": DEFAULT_MODEL,
+        "claude_available": anthropic_client is not None,
+    }
 
 
 @app.get("/health")
@@ -165,6 +195,27 @@ async def health():
         raise HTTPException(status_code=503, detail=f"Ollama not reachable: {e}")
 
 
+@app.get("/samples")
+async def get_samples():
+    samples_dir = Path("static/samples")
+    result = []
+    for s in SAMPLES:
+        image_path = samples_dir / s["image"]
+        s_copy = {k: v for k, v in s.items() if k not in ("pre_thinking", "result")}
+        s_copy["has_image"] = image_path.exists()
+        s_copy["image_url"] = f"/static/samples/{s['image']}" if image_path.exists() else None
+        result.append(s_copy)
+    return result
+
+
+@app.get("/samples/{sample_id}")
+async def get_sample(sample_id: str):
+    sample = next((s for s in SAMPLES if s["id"] == sample_id), None)
+    if not sample:
+        raise HTTPException(status_code=404, detail="Sample not found")
+    return sample
+
+
 @app.post("/analyze")
 async def analyze_image(
     file: UploadFile = File(...),
@@ -179,6 +230,7 @@ async def analyze_image(
         raise HTTPException(status_code=400, detail="Image too large (max 20MB)")
 
     system_prompt = LONG_SYSTEM_PROMPT if prompt_mode == "long" else SHORT_SYSTEM_PROMPT
+    is_claude = model.startswith("claude-")
 
     def try_extract_json(text: str) -> dict | None:
         """Try multiple strategies to extract a valid location JSON from text."""
@@ -233,49 +285,74 @@ async def analyze_image(
     def stream_response():
         full_text = ""
         try:
-            msg1 = json.dumps({"type": "thinking", "text": f"Model: {model} | Prompt: {prompt_mode}\nLoading model into memory...\n"})
-            msg2 = json.dumps({"type": "thinking", "text": "Sending image to model...\n\n"})
-            yield f"data: {msg1}\n\n"
-            yield f"data: {msg2}\n\n"
+            header = json.dumps({"type": "thinking", "text": f"Model: {model} | Prompt: {prompt_mode}\nSending image to model...\n\n"})
+            yield f"data: {header}\n\n"
 
-            for chunk in ollama.chat(
-                model=model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {
+            # ── CLAUDE (Anthropic API) ────────────────────────────────────────
+            if is_claude:
+                if not anthropic_client:
+                    err = json.dumps({"type": "error", "message": "ANTHROPIC_API_KEY not set. Add it to your environment and restart."})
+                    yield f"data: {err}\n\n"
+                    return
+
+                media_type = file.content_type if file.content_type in ("image/jpeg", "image/png", "image/gif", "image/webp") else "image/jpeg"
+                b64_image = base64.standard_b64encode(image_data).decode("utf-8")
+
+                with anthropic_client.messages.stream(
+                    model=model,
+                    max_tokens=3000,
+                    system=system_prompt,
+                    messages=[{
                         "role": "user",
-                        "content": "Analyze this street view image and predict the location. Think step by step, then output the RESULT_JSON.",
-                        "images": [image_data],
-                    },
-                ],
-                stream=True,
-                options={"temperature": 0.1, "num_predict": 3000},
-            ):
-                text = chunk.message.content
-                full_text += text
-                # Stream everything up to RESULT_JSON as thinking
-                if "RESULT_JSON:" not in full_text:
-                    yield f"data: {json.dumps({'type': 'thinking', 'text': text})}\n\n"
+                        "content": [
+                            {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": b64_image}},
+                            {"type": "text", "text": "Analyze this street view image and predict the location. Think step by step, then output the RESULT_JSON."},
+                        ],
+                    }],
+                ) as stream:
+                    for text in stream.text_stream:
+                        full_text += text
+                        if "RESULT_JSON:" not in full_text:
+                            yield f"data: {json.dumps({'type': 'thinking', 'text': text})}\n\n"
 
-            # Pass 1: try to extract JSON from the raw response
+            # ── OLLAMA (local) ────────────────────────────────────────────────
+            else:
+                for chunk in ollama.chat(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {
+                            "role": "user",
+                            "content": "Analyze this street view image and predict the location. Think step by step, then output the RESULT_JSON.",
+                            "images": [image_data],
+                        },
+                    ],
+                    stream=True,
+                    options={"temperature": 0.1, "num_predict": 3000},
+                ):
+                    text = chunk.message.content
+                    full_text += text
+                    if "RESULT_JSON:" not in full_text:
+                        yield f"data: {json.dumps({'type': 'thinking', 'text': text})}\n\n"
+
+            # ── JSON extraction (same for both backends) ──────────────────────
             result = try_extract_json(full_text)
 
             if result:
                 yield f"data: {json.dumps({'type': 'result', 'data': result})}\n\n"
             else:
-                # Pass 2: model didn't follow the format — ask it again with just text
-                notice = json.dumps({"type": "thinking", "text": "\n\n[Model did not output structured JSON — running extraction pass...]\n"})
+                notice = json.dumps({"type": "thinking", "text": "\n\n[Structured JSON not found — running extraction pass...]\n"})
                 yield f"data: {notice}\n\n"
-
                 result = second_pass_json(model, full_text)
                 if result:
                     yield f"data: {json.dumps({'type': 'result', 'data': result})}\n\n"
                 else:
-                    err = json.dumps({"type": "error", "message": "Could not extract a location from the model response. Try a larger model like llama3.2-vision."})
+                    err = json.dumps({"type": "error", "message": "Could not extract a location. Try a larger model."})
                     yield f"data: {err}\n\n"
 
         except Exception as e:
-            err = json.dumps({"type": "error", "message": f"Ollama error: {str(e)}"})
+            backend = "Anthropic" if is_claude else "Ollama"
+            err = json.dumps({"type": "error", "message": f"{backend} error: {str(e)}"})
             yield f"data: {err}\n\n"
 
         yield f"data: {json.dumps({'type': 'done'})}\n\n"

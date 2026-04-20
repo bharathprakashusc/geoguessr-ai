@@ -83,6 +83,66 @@
       letter-spacing: 1px; margin-bottom: 10px;
     }
 
+    /* sample picker */
+    .samples-header {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none;
+    }
+    .samples-header:hover .section-label { color: #4ade80; }
+    .samples-toggle { color: #475569; font-size: 12px; transition: transform 0.2s; }
+    .samples-toggle.open { transform: rotate(90deg); color: #4ade80; }
+
+    .samples-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .sample-card {
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 1px solid #1e2433;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .sample-card:hover { border-color: #4ade80; transform: translateY(-1px); }
+    .sample-card.active { border-color: #4ade80; box-shadow: 0 0 0 1px #4ade80; }
+
+    .sample-thumb {
+      height: 64px;
+      display: flex;
+      align-items: flex-end;
+      padding: 6px 8px;
+      position: relative;
+    }
+    .sample-thumb img {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    }
+    .sample-thumb-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%);
+    }
+    .sample-flag {
+      position: relative; z-index: 1;
+      font-size: 18px; line-height: 1;
+    }
+    .sample-demo-badge {
+      position: absolute; top: 5px; right: 5px; z-index: 1;
+      font-size: 8px; font-weight: 700; letter-spacing: 0.5px;
+      background: rgba(74,222,128,0.2); color: #4ade80;
+      border: 1px solid rgba(74,222,128,0.4);
+      border-radius: 4px; padding: 1px 5px;
+      text-transform: uppercase;
+    }
+    .sample-info {
+      padding: 5px 8px 6px;
+      background: #0d1220;
+    }
+    .sample-city { font-size: 11px; font-weight: 600; color: #cbd5e1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sample-country { font-size: 10px; color: #475569; }
+
     /* drop zone */
     .drop-zone {
       border: 2px dashed #2d3748; border-radius: 10px;
@@ -296,6 +356,15 @@
         </div>
       </div>
 
+      <!-- Sample picker -->
+      <div class="panel-block" id="samples-block">
+        <div class="samples-header" onclick="toggleSamples()">
+          <div class="section-label" style="margin:0">Sample Images</div>
+          <span class="samples-toggle" id="samples-toggle">▸</span>
+        </div>
+        <div class="samples-grid" id="samples-grid" style="display:none"></div>
+      </div>
+
       <div class="panel-block">
         <div class="section-label">Settings</div>
         <div class="settings-rows">
@@ -382,14 +451,17 @@
   <script>
     // ── TIME ESTIMATES ──
     const TIME_ESTIMATES = {
-      'moondream':           { short: '~1 min',   long: '~2 min',   note: 'Fastest, lower accuracy' },
-      'llava':               { short: '~3 min',   long: '~6 min',   note: 'Good balance' },
-      'llava:7b':            { short: '~3 min',   long: '~6 min',   note: 'Good balance' },
-      'llava:13b':           { short: '~6 min',   long: '~10 min',  note: 'Higher accuracy, slower' },
-      'llama3.2-vision':     { short: '~2 min',   long: '~5 min',   note: 'Best accuracy' },
-      'llama3.2-vision:11b': { short: '~2 min',   long: '~5 min',   note: 'Best accuracy' },
-      'minicpm-v':           { short: '~2 min',   long: '~4 min',   note: 'Good middle ground' },
-      'bakllava':            { short: '~3 min',   long: '~5 min',   note: 'Good accuracy' },
+      'claude-sonnet-4-5':   { short: '~8 sec',   long: '~15 sec',  note: '⚡ Claude API · Best accuracy' },
+      'claude-opus-4-5':     { short: '~15 sec',  long: '~25 sec',  note: '⚡ Claude API · Maximum reasoning' },
+      'claude-haiku-4-5':    { short: '~5 sec',   long: '~8 sec',   note: '⚡ Claude API · Fastest Claude' },
+      'moondream':           { short: '~1 min',   long: '~2 min',   note: 'Local · Fastest, lower accuracy' },
+      'llava':               { short: '~3 min',   long: '~6 min',   note: 'Local · Good balance' },
+      'llava:7b':            { short: '~3 min',   long: '~6 min',   note: 'Local · Good balance' },
+      'llava:13b':           { short: '~6 min',   long: '~10 min',  note: 'Local · Higher accuracy, slower' },
+      'llama3.2-vision':     { short: '~2 min',   long: '~5 min',   note: 'Local · Best local accuracy' },
+      'llama3.2-vision:11b': { short: '~2 min',   long: '~5 min',   note: 'Local · Best local accuracy' },
+      'minicpm-v':           { short: '~2 min',   long: '~4 min',   note: 'Local · Good middle ground' },
+      'bakllava':            { short: '~3 min',   long: '~5 min',   note: 'Local · Good accuracy' },
     };
 
     function getEstimate(modelName, mode) {
@@ -415,6 +487,119 @@
     let primaryMarker = null;
     const altMarkers = [];
 
+    // ── SAMPLES ──
+    let samplesOpen = false;
+    let activeSampleId = null;
+    let samplePlaybackTimeout = null;
+
+    function toggleSamples() {
+      samplesOpen = !samplesOpen;
+      document.getElementById('samples-grid').style.display = samplesOpen ? 'grid' : 'none';
+      document.getElementById('samples-toggle').classList.toggle('open', samplesOpen);
+    }
+
+    async function loadSamples() {
+      try {
+        const res = await fetch('/samples');
+        const samples = await res.json();
+        const grid = document.getElementById('samples-grid');
+        grid.innerHTML = '';
+        samples.forEach(s => {
+          const card = document.createElement('div');
+          card.className = 'sample-card';
+          card.id = `sample-${s.id}`;
+          card.onclick = () => selectSample(s.id);
+
+          const thumbStyle = s.has_image ? '' : `background: ${s.gradient};`;
+          card.innerHTML = `
+            <div class="sample-thumb" style="${thumbStyle}">
+              ${s.has_image ? `<img src="${s.image_url}" alt="${s.name}" />` : ''}
+              <div class="sample-thumb-overlay"></div>
+              <div class="sample-flag">${s.flag}</div>
+              <div class="sample-demo-badge">Demo</div>
+            </div>
+            <div class="sample-info">
+              <div class="sample-city">${s.name}</div>
+              <div class="sample-country">${s.country}</div>
+            </div>`;
+          grid.appendChild(card);
+        });
+      } catch (e) {
+        console.error('Could not load samples', e);
+      }
+    }
+    loadSamples();
+
+    async function selectSample(id) {
+      // Mark card active
+      document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('active'));
+      const card = document.getElementById(`sample-${id}`);
+      if (card) card.classList.add('active');
+      activeSampleId = id;
+
+      // Fetch full sample data
+      const res = await fetch(`/samples/${id}`);
+      const sample = await res.json();
+
+      // Show placeholder in preview
+      previewImg.style.display = 'none';
+      previewCon.style.display = 'block';
+
+      // Show location banner instead of image if no real screenshot
+      let banner = document.getElementById('sample-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'sample-banner';
+        banner.style.cssText = `height:120px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;margin-bottom:0;`;
+        previewCon.insertBefore(banner, previewImg);
+      }
+      banner.style.background = sample.gradient;
+      banner.style.display = 'flex';
+      banner.innerHTML = `
+        <div style="font-size:36px">${sample.flag}</div>
+        <div style="font-size:13px;font-weight:700;color:#fff">${sample.name}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.5);background:rgba(74,222,128,0.2);border:1px solid rgba(74,222,128,0.3);border-radius:4px;padding:2px 8px;letter-spacing:0.5px;text-transform:uppercase">Claude Vision Demo</div>`;
+
+      // Disable analyze button — we play back pre-computed result instead
+      analyzeBtn.textContent = 'Playing demo result...';
+      analyzeBtn.disabled = true;
+
+      // Clear previous state
+      clearTimeout(samplePlaybackTimeout);
+      document.getElementById('results-bar').style.display = 'none';
+      document.getElementById('thinking-body').textContent = '';
+      document.getElementById('thinking-indicator').style.display = 'flex';
+      startTimer();
+
+      // Typewriter playback of pre-computed thinking
+      await typewriterPlayback(sample.pre_thinking, 8);
+
+      // Show result
+      stopTimer();
+      document.getElementById('thinking-indicator').style.display = 'none';
+      displayResult(sample.result);
+
+      analyzeBtn.textContent = 'Analyze Location';
+      analyzeBtn.disabled = false;
+      currentFile = null; // clear real file since we're in demo mode
+    }
+
+    async function typewriterPlayback(text, charsPerChunk) {
+      const body = document.getElementById('thinking-body');
+      return new Promise(resolve => {
+        let i = 0;
+        function tick() {
+          if (i >= text.length) { resolve(); return; }
+          const chunk = text.slice(i, i + charsPerChunk);
+          body.textContent += chunk;
+          body.scrollTop = body.scrollHeight;
+          i += charsPerChunk;
+          samplePlaybackTimeout = setTimeout(tick, 16);
+        }
+        tick();
+      });
+    }
+
     // ── LOAD MODELS ──
     async function loadModels() {
       const dot    = document.getElementById('status-dot');
@@ -437,7 +622,11 @@
           select.appendChild(opt);
         });
         dot.className = 'status-dot ok';
-        label.textContent = 'Ollama connected';
+        const parts = [];
+        const hasOllama = data.models.some(m => !m.startsWith('claude-'));
+        if (hasOllama) parts.push('Ollama');
+        if (data.claude_available) parts.push('Claude API');
+        label.textContent = parts.join(' · ') + ' ready';
         updateEstimate();
       } catch {
         dot.className = 'status-dot error';
@@ -486,6 +675,12 @@
 
     function loadPreview(file) {
       currentFile = file;
+      activeSampleId = null;
+      // Clear sample state
+      document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('active'));
+      const banner = document.getElementById('sample-banner');
+      if (banner) banner.style.display = 'none';
+      previewImg.style.display = 'block';
       const reader = new FileReader();
       reader.onload = e => { previewImg.src = e.target.result; previewCon.style.display = 'block'; };
       reader.readAsDataURL(file);

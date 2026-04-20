@@ -1,0 +1,237 @@
+[
+  {
+    "id": "1",
+    "name": "Tocantins, Brazil",
+    "country": "Brazil",
+    "flag": "🇧🇷",
+    "gradient": "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+    "accent": "#e94560",
+    "image": "1.png",
+    "pre_thinking": "Let me analyze this street view image systematically.\n\n**SCRIPT/LANGUAGE:** No visible text or signs in the image, so I cannot determine script type from text.\n\n**DRIVING SIDE:** The road appears to be right-hand traffic based on the road marking positions and typical traffic flow indicators.\n\n**ROAD MARKINGS:** The center line appears to be yellow/orange double lines, with white edge lines on the side. This is characteristic of Brazil's road marking system.\n\n**BOLLARDS:** No bollards visible in this image.\n\n**VEGETATION:** The vegetation is lush and tropical/subtropical. There are deciduous trees with broad leaves, suggesting a tropical savanna or cerrado climate. The trees appear to be well-established street trees lining both sides of the road.\n\n**TERRAIN:** The terrain is flat, with a straight road extending into the distance. This is typical of planned settlements in interior regions.\n\n**ARCHITECTURE:** The buildings visible are single-story residential structures with simple construction. On the left, there's a brown/orange wall or fence. The buildings appear modest and functional, typical of small-town Brazil. The architecture style and materials suggest a planned community in Brazil's interior.\n\n**SIGNS:** No visible signs in the image.\n\n**INFRASTRUCTURE:** \n- Concrete utility poles with multiple power lines\n- Paved road in good condition with painted curbs (white)\n- Sidewalks visible\n- Street trees planted at regular intervals in a planned manner\n- The overall infrastructure suggests a well-organized, planned town\n\n**OTHER:** \n- The red/terracotta colored soil visible on the sides is characteristic of Brazil's cerrado region\n- The planned nature of the street with regular tree spacing and painted curbs\n- The style of residential construction\n- The combination of tropical vegetation with the red soil\n\n**CONCLUSION:** This appears to be a small town in Brazil's interior, likely in the Central-West or North region. The red soil, tropical vegetation, planned street layout, yellow center lines, and architectural style are all consistent with towns in states like Goiás, Mato Grosso, Tocantins, or similar regions. The infrastructure quality and planning suggest this could be a relatively newer planned settlement or a well-maintained smaller municipality. Given the specific characteristics, this looks most like a town in the Tocantins or Goiás region of Brazil.",
+    "result": {
+      "clues": {
+        "script_language": "No visible text",
+        "driving_side": "right",
+        "road_lines": "Yellow/orange double center line with white edge lines",
+        "bollards": "None visible",
+        "vegetation": "Tropical/subtropical deciduous trees, lush green canopy, consistent with cerrado climate",
+        "terrain": "Flat, straight road extending into distance",
+        "architecture": "Single-story residential buildings, simple construction, modest materials, brown/orange walls",
+        "signs": "No visible signs",
+        "infrastructure": "Concrete utility poles, good quality paved road, painted white curbs, planned street tree layout, sidewalks",
+        "other": "Red/terracotta soil visible, planned community layout, Brazilian-style residential construction"
+      },
+      "reasoning": "The combination of yellow center line road markings, red tropical soil, lush deciduous vegetation, concrete utility poles, and modest single-story architecture points strongly to interior Brazil. The planned street layout with regular tree spacing and good infrastructure suggests a well-organized municipality in Brazil's Central-West region. The specific characteristics of the soil color, vegetation type, and architectural style are most consistent with towns in Tocantins or Goiás states.",
+      "country": "Brazil",
+      "region": "Tocantins",
+      "confidence": "medium",
+      "latitude": -10.1835,
+      "longitude": -48.3336,
+      "location_name": "Palmas, Tocantins, Brazil",
+      "alternatives": [
+        {
+          "country": "Brazil",
+          "region": "Goiás",
+          "latitude": -15.9398,
+          "longitude": -50.1408,
+          "reason": "Similar vegetation, soil, and planned town characteristics common in Goiás interior"
+        },
+        {
+          "country": "Brazil",
+          "region": "Mato Grosso",
+          "latitude": -15.6014,
+          "longitude": -56.0979,
+          "reason": "Red soil and tropical savanna vegetation also found in Mato Grosso towns"
+        }
+      ]
+    }
+  },
+  {
+    "id": "2",
+    "name": "Mindanao or Northern Mindanao, Philippines",
+    "country": "Philippines",
+    "flag": "🇵🇭",
+    "gradient": "linear-gradient(135deg, #2c3e50 0%, #3d5a80 50%, #98c1d9 100%)",
+    "accent": "#e8c547",
+    "image": "2.png",
+    "pre_thinking": "Let me analyze this image systematically:\n\n**SCRIPT/LANGUAGE:** No visible text on signs or buildings in the immediate view.\n\n**DRIVING SIDE:** Right-hand traffic - vehicles are driving on the right side of the road.\n\n**ROAD MARKINGS:** White dashed center line and white edge lines. The road appears to be relatively well-maintained with clear markings.\n\n**BOLLARDS:** None visible in the immediate area.\n\n**VEGETATION:** Dense tropical/subtropical vegetation on both sides of the road. Lush green trees and shrubs indicating high rainfall. The vegetation appears to be secondary growth tropical forest.\n\n**TERRAIN:** Relatively flat to gently rolling terrain. The area appears to be lowland tropical.\n\n**ARCHITECTURE:** Limited architecture visible. There's a truck/vehicle carrier on the right side with what appears to be motorcycles loaded on it. Some basic infrastructure visible but no distinctive buildings.\n\n**SIGNS:** No clear road signs visible in this view.\n\n**INFRASTRUCTURE:** \n- Wooden utility poles visible on the left side\n- Overhead power lines\n- Well-paved two-lane road with good surface quality\n- The road appears to be a main highway or arterial route\n\n**OTHER:** \n- The truck on the right appears to be carrying motorcycles, suggesting this is a commercial route\n- The lush vegetation and road quality suggests a tropical developing country\n- The style of utility poles and road construction points to Southeast Asia\n- The overall setting - vegetation density, road quality, and infrastructure style - is very characteristic of the Philippines\n\n**SPECIFIC INDICATORS:**\n- The combination of right-hand traffic, tropical vegetation, wooden utility poles, and road style is highly characteristic of the Philippines\n- The road appears to be a national highway based on its width and marking quality\n- The presence of motorcycle transport is common in the Philippines",
+    "result": {
+      "clues": {
+        "script_language": "None visible",
+        "driving_side": "right",
+        "road_lines": "White dashed center line, white edge lines",
+        "bollards": "None visible",
+        "vegetation": "Dense tropical/subtropical forest, lush green vegetation",
+        "terrain": "Flat to gently rolling lowland",
+        "architecture": "Limited visible; motorcycle transport truck",
+        "signs": "None clearly visible",
+        "infrastructure": "Wooden utility poles, overhead power lines, well-paved two-lane highway",
+        "other": "Motorcycle carrier truck, tropical climate indicators, secondary growth forest"
+      },
+      "reasoning": "The image shows a well-maintained highway with right-hand traffic running through dense tropical vegetation. The combination of wooden utility poles, road construction style, vegetation type, and the presence of motorcycle transport is highly characteristic of the Philippines. The road quality and width suggest this is a national highway. The lush tropical vegetation and lowland terrain are consistent with many regions of the Philippines, particularly in Mindanao or the Visayas regions.",
+      "country": "Philippines",
+      "region": "Mindanao or Northern Mindanao",
+      "confidence": "medium",
+      "latitude": 8.4542,
+      "longitude": 124.6319,
+      "location_name": "Cagayan de Oro area, Northern Mindanao, Philippines",
+      "alternatives": [
+        {
+          "country": "Philippines",
+          "region": "Leyte",
+          "latitude": 10.7202,
+          "longitude": 124.9025,
+          "reason": "Similar vegetation and road infrastructure common in Eastern Visayas"
+        },
+        {
+          "country": "Philippines",
+          "region": "Davao Region",
+          "latitude": 7.1907,
+          "longitude": 125.4553,
+          "reason": "Comparable tropical setting and highway system in southern Mindanao"
+        }
+      ]
+    }
+  },
+  {
+    "id": "3",
+    "name": "Castilla-La Mancha or Andalusia, Spain",
+    "country": "Spain",
+    "flag": "🇪🇸",
+    "gradient": "linear-gradient(135deg, #134e5e 0%, #71b280 100%)",
+    "accent": "#f7dc6f",
+    "image": "3.png",
+    "pre_thinking": "Looking at this image, I'll analyze the clues systematically:\n\n**SCRIPT/LANGUAGE:** The visible signage appears to use Latin script. No text is clearly readable, but this is consistent with Southern European countries.\n\n**DRIVING SIDE:** Right-hand traffic (vehicle on right side of road, driving on right).\n\n**ROAD MARKINGS:** White road lines visible on the pavement. The markings and road surface quality suggest European standards.\n\n**BOLLARDS:** Modern street lighting with curved poles. Standard European-style infrastructure.\n\n**VEGETATION:** Mediterranean vegetation - green shrubs and trees, some coniferous trees visible. The vegetation is lush but adapted to warm, dry climates.\n\n**TERRAIN:** Hilly terrain visible in the background. The town sits on elevated ground with hills surrounding it.\n\n**ARCHITECTURE:** \n- White-washed buildings with terracotta/clay tile roofs (very characteristic)\n- Mix of single and multi-story buildings\n- Church tower/bell tower visible in the distance (central landmark)\n- Traditional Spanish/Iberian architectural style\n- Building on right has white walls with blue trim\n- Residential area transitioning to town center\n\n**SIGNS:** Red triangular warning sign visible (European standard). The sign design matches Spanish road signage conventions.\n\n**INFRASTRUCTURE:** \n- Modern paved sidewalks with red/terracotta colored tiles\n- Well-maintained asphalt road\n- Modern street lighting\n- Overhead cables/infrastructure visible\n- Quality consistent with Spanish provincial towns\n\n**OTHER:** \n- Silver/white sedan (Renault or similar European make)\n- Clear blue sky with some clouds\n- Sun angle suggests Mediterranean latitude\n- Overall aesthetic screams Spain - specifically inland/central Spain\n\n**CONCLUSION:** This is definitively Spain. The architecture (white buildings with terracotta roofs), the church tower, the road signs, and the Mediterranean vegetation all point to this. The terrain and building style suggest this is likely in the region of Castilla-La Mancha, Andalusia, or Extremadura. The town appears to be a small to medium-sized municipality in central or southern Spain. Based on the hillside setting and architectural style, this could be in the province of Jaén, Granada, or similar areas of southern/central Spain.",
+    "result": {
+      "clues": {
+        "script_language": "Latin script, likely Spanish",
+        "driving_side": "right",
+        "road_lines": "white markings",
+        "bollards": "Modern European-style curved street lamps",
+        "vegetation": "Mediterranean - lush green shrubs, coniferous trees",
+        "terrain": "Hilly, elevated terrain with town on hillside",
+        "architecture": "White-washed buildings with terracotta tile roofs, church tower visible, traditional Spanish style",
+        "signs": "Red triangular warning sign, European/Spanish standard",
+        "infrastructure": "Modern paved sidewalks with terracotta tiles, well-maintained roads, overhead utilities",
+        "other": "European sedan, clear Mediterranean climate, classic Spanish town aesthetic"
+      },
+      "reasoning": "The combination of white-washed buildings with terracotta roofs, the prominent church tower, Mediterranean vegetation, hilly terrain, and European road infrastructure strongly indicates Spain. The architectural style and setting are characteristic of small towns in central or southern Spain, particularly in regions like Castilla-La Mancha, Andalusia, or Extremadura. The road quality and modern infrastructure suggest a well-maintained provincial town.",
+      "country": "Spain",
+      "region": "Castilla-La Mancha or Andalusia",
+      "confidence": "high",
+      "latitude": 38.45,
+      "longitude": -3.85,
+      "location_name": "Small town in Jaén or Ciudad Real province, Spain",
+      "alternatives": [
+        {
+          "country": "Spain",
+          "region": "Extremadura",
+          "latitude": 38.8,
+          "longitude": -5.5,
+          "reason": "Similar architectural style and terrain in western Spain"
+        },
+        {
+          "country": "Spain",
+          "region": "Granada province",
+          "latitude": 37.3,
+          "longitude": -3.5,
+          "reason": "Hillside towns with white buildings common in this area"
+        }
+      ]
+    }
+  },
+  {
+    "id": "4",
+    "name": "North Brabant, Netherlands",
+    "country": "Netherlands",
+    "flag": "🇳🇱",
+    "gradient": "linear-gradient(135deg, #3d1c02 0%, #8b4513 50%, #cd853f 100%)",
+    "accent": "#4ade80",
+    "image": "4.png",
+    "pre_thinking": "Looking at this street view image, let me analyze the key clues systematically:\n\n**SCRIPT/LANGUAGE:** No visible text or signs in the immediate view.\n\n**DRIVING SIDE:** Right-hand traffic (driving on the right side of the road).\n\n**ROAD MARKINGS:** White center line with dashed white centerline markings, solid white edge lines. This is typical of European road standards.\n\n**BOLLARDS:** White bollards with black caps/bands visible on the roadside. This is a very distinctive feature of several European countries, particularly Germany, the Netherlands, and Belgium.\n\n**VEGETATION:** Temperate deciduous trees (appear to be oak or similar species) lining the road. Mix of agricultural land - plowed brown fields on the left, green cultivated fields on the right. This is typical agricultural landscape of northwestern Europe.\n\n**TERRAIN:** Very flat terrain with extensive agricultural fields. The flatness is characteristic of the Low Countries or northern German plains.\n\n**ARCHITECTURE:** No buildings visible in immediate view, but this is clearly agricultural countryside.\n\n**SIGNS:** No visible road signs in this frame.\n\n**INFRASTRUCTURE:** Well-maintained asphalt road, relatively narrow rural road with trees planted along the verge. Road quality is good, suggesting a developed European country.\n\n**OTHER:** The combination of extremely flat terrain, agricultural landscape with both plowed and green fields, the specific style of bollards (white with black), and the tree-lined road is highly characteristic of the Netherlands, Belgium, or northern Germany.\n\nThe agricultural pattern and flatness most strongly suggest the **Netherlands** or **northern Belgium (Flanders)**. The bollard style with white posts and black tops, combined with the extreme flatness and intensive agriculture, points most strongly to the **Netherlands** or the **Belgian-Dutch border region**.\n\nGiven the agricultural intensity, flatness, and road infrastructure style, I'm leaning toward the **southern Netherlands (North Brabant or Limburg)** or **northern Belgium (Flemish region)**.",
+    "result": {
+      "clues": {
+        "script_language": "No visible text",
+        "driving_side": "right",
+        "road_lines": "White solid edge lines, white dashed center line",
+        "bollards": "White posts with black caps - distinctive European style",
+        "vegetation": "Temperate deciduous trees, mixed agriculture",
+        "terrain": "Extremely flat agricultural plains",
+        "architecture": "Rural agricultural area, no buildings visible",
+        "signs": "None visible",
+        "infrastructure": "Well-maintained narrow rural road, tree-lined",
+        "other": "Intensive agriculture with plowed and cultivated fields, characteristic Low Countries landscape"
+      },
+      "reasoning": "The extremely flat terrain combined with white bollards with black caps, intensive agriculture, tree-lined roads, and right-hand traffic strongly indicates the Netherlands or northern Belgium. The agricultural landscape pattern and infrastructure quality suggest the southern Netherlands (North Brabant region) or northern Belgian Flanders. The bollard style and overall landscape aesthetic are most consistent with the Netherlands.",
+      "country": "Netherlands",
+      "region": "North Brabant",
+      "confidence": "medium",
+      "latitude": 51.4893,
+      "longitude": 5.4792,
+      "location_name": "North Brabant region, Netherlands",
+      "alternatives": [
+        {
+          "country": "Belgium",
+          "region": "Flemish Brabant",
+          "latitude": 50.8897,
+          "longitude": 4.7123,
+          "reason": "Similar flat agricultural landscape and bollard style in northern Belgium"
+        },
+        {
+          "country": "Germany",
+          "region": "Lower Saxony",
+          "latitude": 52.3547,
+          "longitude": 7.4523,
+          "reason": "Northern German plains also have similar flat agricultural landscape"
+        }
+      ]
+    }
+  },
+  {
+    "id": "5",
+    "name": "County Galway, Ireland",
+    "country": "Ireland",
+    "flag": "🇮🇪",
+    "gradient": "linear-gradient(135deg, #2d1b69 0%, #8b2fc9 50%, #c9184a 100%)",
+    "accent": "#ff6b6b",
+    "image": "5.png",
+    "pre_thinking": "Looking at this street view image, let me analyze the clues systematically:\n\n**SCRIPT/LANGUAGE**: No visible text or signs in the image.\n\n**DRIVING SIDE**: The road appears to be a single-lane rural road. Based on the camera position and road layout, this appears to be left-hand traffic.\n\n**ROAD MARKINGS**: No visible road markings on this narrow rural road.\n\n**BOLLARDS**: No bollards visible, but there are wooden fence posts along the roadside - a common feature in pastoral areas.\n\n**VEGETATION**: Lush green grass pastures with sheep visible. Low scrubby vegetation and bracken along the road edges. This is typical temperate oceanic climate vegetation - very green and well-watered. The landscape suggests high rainfall.\n\n**TERRAIN**: Rolling hills with flat to gently undulating terrain in the foreground. Mountains visible in the distant background. This is characteristic of coastal or near-coastal regions with highland areas inland.\n\n**ARCHITECTURE**: White-painted houses visible in the distance on the left hillside. Traditional rural dwellings scattered across the landscape.\n\n**SIGNS**: None visible.\n\n**INFRASTRUCTURE**: Simple narrow rural road, appears to be a minor country road. Wooden fence posts. The road quality is basic but maintained.\n\n**OTHER**: \n- Sheep grazing in fields - major agricultural indicator\n- Overcast, cloudy sky typical of maritime climate\n- Green, pastoral landscape year-round\n- Stone walls or hedgerows dividing fields\n- The overall aesthetic is very characteristic of Ireland or Scotland\n\n**REASONING**: The combination of extremely lush green pastures, sheep farming, white houses, rolling terrain leading to distant mountains, left-hand traffic, temperate maritime vegetation, and the overall landscape character is highly characteristic of Ireland, particularly the western regions. The remoteness, narrow roads, and pastoral nature suggest rural Ireland. The mountains in the background and coastal proximity suggest counties like Galway, Mayo, or Donegal in the west of Ireland.",
+    "result": {
+      "clues": {
+        "script_language": "None visible",
+        "driving_side": "left",
+        "road_lines": "None - narrow rural road",
+        "bollards": "None, but wooden fence posts present",
+        "vegetation": "Lush temperate grassland, bracken, pastoral fields with sheep",
+        "terrain": "Rolling hills with distant mountains, coastal/lowland character",
+        "architecture": "White painted rural houses scattered on hillsides",
+        "signs": "None visible",
+        "infrastructure": "Narrow single-lane rural road, wooden fencing, basic construction",
+        "other": "Sheep grazing, extremely green landscape, overcast maritime climate, stone walls/hedgerows"
+      },
+      "reasoning": "This landscape exhibits classic Irish west coast characteristics: lush green pastoral fields with sheep, left-hand traffic, white rural houses, rolling terrain leading to distant mountains, and temperate maritime vegetation. The extreme greenness, overcast sky, and sheep farming are quintessentially Irish. The remoteness and landscape suggest western Ireland, possibly County Galway or Mayo where such pastoral landscapes with mountain backdrops are common.",
+      "country": "Ireland",
+      "region": "County Galway",
+      "confidence": "high",
+      "latitude": 53.45,
+      "longitude": -9.75,
+      "location_name": "Connemara, County Galway, Ireland",
+      "alternatives": [
+        {
+          "country": "Ireland",
+          "region": "County Mayo",
+          "latitude": 53.85,
+          "longitude": -9.5,
+          "reason": "Similar landscape in western Mayo"
+        },
+        {
+          "country": "Scotland",
+          "region": "Western Highlands",
+          "latitude": 57.45,
+          "longitude": -5.5,
+          "reason": "Similar terrain but Ireland more likely due to specific landscape character"
+        }
+      ]
+    }
+  }
+]
